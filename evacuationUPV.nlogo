@@ -1,16 +1,22 @@
 extensions [bitmap]
-globals [ ]
+globals [Final-Cost]
 
-
-patches-own [road? save? faculty]
-turtles-own [saveT?]
+patches-own [road? save? father Cost-path visited? active? faculty]
+turtles-own [saveT? camino ]
 to setup
   ca
 
-  resize-world -480 480 -240 240
+  ;resize-world -480 480 -240 240
   import-pcolors-rgb "bg.png"
 
-  ask patches [ set road? false set save? false]
+  ask turtles [set saveT? false]
+    ask patches [
+    set road? false
+    set save? false
+    set father nobody
+    set Cost-path 0
+    set visited? false
+    set active? false]
   ask patches with [pcolor = extract-rgb red       ] [ set road? true ]
   ask patches with [pcolor = extract-rgb orange    ] [ set road? true ]
   ask patches with [pcolor = extract-rgb lime      ] [ set road? true ]
@@ -23,9 +29,9 @@ to setup
   ask patches with [pcolor = extract-rgb cyan       ] [set save? true ]
 
   ;create persons of diferent faculty
-  (foreach  [yellow red blue cyan black orange violet sky] [ red orange lime brown turquoise magenta yellow violet] [1 2 3 4 5 6 7 8]
+  (foreach  [yellow red blue cyan black orange violet sky] [ red orange lime brown turquoise magenta yellow violet ] [1 2 3 4 5 6 7 8]
   [ [col pcol fac] -> ask n-of number patches with [pcolor = extract-rgb pcol][
-      sprout 1 [set color col set shape "person" set size 5 set faculty fac]
+      sprout 1 [set color col set shape "person" set size 2 set faculty fac]
     ]
   ])
 
@@ -33,44 +39,155 @@ to setup
 end
 
 to go
-  ifelse ticks >= StopTicks [ stop ][tick]
+
+  ifelse  count ( turtles with [save? = false]) = 0 [ stop ][tick]
 
   ifelse not alert
-  [ask turtles [
-      set heading towards one-of patches in-radius 2 with [ road? = true and count turtles-here = 0 ]  fd 1
-    ]
-  ]
+  [ask turtles [ ;normal move
+    face one-of patches in-radius 2 with [ road? = true and count turtles-here = 0 ]  fd 1
+  ]]
+
   [
-    ask turtles [set saveT? false]
-    ask turtles [
-      if pcolor = extract-rgb cyan [ set saveT? true]
-      set heading towards one-of patches with[ save? = true ] fd 1
+    ask turtles with [save? = false] [ ; alert move
+      let cc color
+      let p-valids (patches with [pcolor != extract-rgb black and ( pcolor = extract-rgb cc or pcolor = extract-rgb cyan or pcolor = extract-rgb white or pcolor = extract-rgb gray )])
+      ifelse camino = 0 [
+        set camino A* patch-here (min-one-of patches with[ save? = true] [distance myself]) p-valids
+      ]
+      [
+        ifelse pcolor = rgb 0 255 0 [ set saveT? true]
+                                    [let tgo first camino
+                                     move-to tgo
+                                     set camino remove-item 0 camino ]
+      ]
     ]
   ]
 
+end
+
+
+to-report A* [#Start #Goal #valid-map]
+  ; clear all the information in the agents
+  ask #valid-map with [visited?]
+  [
+    set father nobody
+    set Cost-path 0
+    set visited? false
+    set active? false
+  ]
+  ; Active the staring point to begin the searching loop
+  ask #Start
+  [
+    set father self
+    set visited? true
+    set active? true
+  ]
+  ; exists? indicates if in some instant of the search there are no options to
+  ; continue. In this case, there is no path connecting #Start and #Goal
+  let exists? true
+  ; The searching loop is executed while we don't reach the #Goal and we think
+  ; a path exists
+  while [not [visited?] of #Goal and exists?]
+  [
+    ; We only work on the valid pacthes that are active
+    let options #valid-map with [active?]
+    ; If any
+    ifelse any? options
+    [
+      ; Take one of the active patches with minimal expected cost
+      ask min-one-of options [Total-expected-cost #Goal]
+      [
+        ; Store its real cost (to reach it) to compute the real cost
+        ; of its children
+        let Cost-path-father Cost-path
+        ; and deactivate it, because its children will be computed right now
+        set active? false
+        ; Compute its valid neighbors
+        let valid-neighbors neighbors with [member? self #valid-map]
+        ask valid-neighbors
+        [
+          ; There are 2 types of valid neighbors:
+          ;   - Those that have never been visited (therefore, the
+          ;       path we are building is the best for them right now)
+          ;   - Those that have been visited previously (therefore we
+          ;       must check if the path we are building is better or not,
+          ;       by comparing its expected length with the one stored in
+          ;       the patch)
+          ; One trick to work with both type uniformly is to give for the
+          ; first case an upper bound big enough to be sure that the new path
+          ; will always be smaller.
+          let t ifelse-value visited? [ Total-expected-cost #Goal] [2 ^ 20]
+          ; If this temporal cost is worse than the new one, we substitute the
+          ; information in the patch to store the new one (with the neighbors
+          ; of the first case, it will be always the case)
+          if t > (Cost-path-father + distance myself + Heuristic #Goal)
+          [
+            ; The current patch becomes the father of its neighbor in the new path
+            set father myself
+            set visited? true
+            set active? true
+            ; and store the real cost in the neighbor from the real cost of its father
+            set Cost-path Cost-path-father + distance father
+            set Final-Cost precision Cost-path 3
+          ]
+        ]
+      ]
+    ]
+    ; If there are no more options, there is no path between #Start and #Goal
+    [
+      set exists? false
+    ]
+  ]
+  ; After the searching loop, if there exists a path
+  ifelse exists?
+  [
+    ; We extract the list of patches in the path, form #Start to #Goal
+    ; by jumping back from #Goal to #Start by using the fathers of every patch
+    let current #Goal
+    set Final-Cost (precision [Cost-path] of #Goal 3)
+    let rep (list current)
+    While [current != #Start]
+    [
+      set current [father] of current
+      set rep fput current rep
+    ]
+    report rep
+  ]
+  [
+    ; Otherwise, there is no path, and we return False
+    report false
+  ]
+end
+
+to-report Total-expected-cost [#Goal]
+  report Cost-path + Heuristic #Goal
+end
+
+to-report Heuristic [#Goal]
+  report distance #Goal
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
 348
 13
-1381
-535
+1561
+627
 -1
 -1
-1.067
+5.0
 1
 10
 1
 1
 1
 0
+0
+0
 1
-1
-1
--480
-480
--240
-240
+-120
+120
+-60
+60
 1
 1
 1
@@ -112,40 +229,25 @@ NIL
 1
 
 SLIDER
-13
-49
-185
-82
+15
+48
+327
+81
 number
 number
 0
-2000
-204.0
-1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-14
-86
-186
-119
-StopTicks
-StopTicks
-1
-5000
-2357.0
+200
+7.0
 1
 1
 NIL
 HORIZONTAL
 
 SWITCH
-24
-137
-127
-170
+17
+86
+120
+119
 alert
 alert
 0
