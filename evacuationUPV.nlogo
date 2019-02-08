@@ -2,26 +2,30 @@ extensions [bitmap]
 globals [ ]
 
 
-patches-own [road? save?]
+patches-own [road? save? faculty]
 turtles-own [saveT?]
 to setup
   ca
-  resize-world -120 120 -120 120
-  import-pcolors-rgb "R2P.png"
-  ;resize-world -120 120 -120 120
-  ;import-pcolors-rgb "R2P.png"
-  ;resize-world -120 120 -120 120
-  ;import-pcolors-rgb "R4P.png"
-  ;resize-world -480 480 -240 240
-  ;import-pcolors-rgb "bg.png"
+
+  resize-world -480 480 -240 240
+  import-pcolors-rgb "bg.png"
+
   ask patches [ set road? false set save? false]
-  ask patches with [pcolor = extract-rgb white] [ set road? true ]
-  ask patches with [pcolor = rgb 0 255 0] [set save? true ]
+  ask patches with [pcolor = extract-rgb red       ] [ set road? true ]
+  ask patches with [pcolor = extract-rgb orange    ] [ set road? true ]
+  ask patches with [pcolor = extract-rgb lime      ] [ set road? true ]
+  ask patches with [pcolor = extract-rgb brown     ] [ set road? true ]
+  ask patches with [pcolor = extract-rgb turquoise ] [ set road? true ]
+  ask patches with [pcolor = extract-rgb magenta   ] [ set road? true ]
+  ask patches with [pcolor = extract-rgb yellow    ] [ set road? true ]
+  ask patches with [pcolor = extract-rgb violet    ] [ set road? true ]
+  ;secure color
+  ask patches with [pcolor = extract-rgb cyan       ] [set save? true ]
 
   ;create persons of diferent faculty
-  (foreach  [yellow red blue cyan white orange violet sky]
-  [ [col] -> ask n-of number patches with [pcolor = extract-rgb white][
-      sprout 1 [set color col set shape "person" set size 5]
+  (foreach  [yellow red blue cyan black orange violet sky] [ red orange lime brown turquoise magenta yellow violet] [1 2 3 4 5 6 7 8]
+  [ [col pcol fac] -> ask n-of number patches with [pcolor = extract-rgb pcol][
+      sprout 1 [set color col set shape "person" set size 5 set faculty fac]
     ]
   ])
 
@@ -33,29 +37,27 @@ to go
 
   ifelse not alert
   [ask turtles [
-    let patF one-of patches in-radius 2 with [ road? = true and count turtles-here = 0 ]
-    if patF != nobody [set heading towards patF fd 1]
-  ]]
-
+      set heading towards one-of patches in-radius 2 with [ road? = true and count turtles-here = 0 ]  fd 1
+    ]
+  ]
   [
     ask turtles [set saveT? false]
     ask turtles [
-      if pcolor = rgb 0 255 0 [ set saveT? true]
-      let targ one-of patches with[ save? = true ]
-      if targ != nobody [set heading towards targ fd 1]
+      if pcolor = extract-rgb cyan [ set saveT? true]
+      set heading towards one-of patches with[ save? = true ] fd 1
     ]
   ]
 
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-210
-10
-700
-501
+348
+13
+1381
+535
 -1
 -1
-2.0
+1.067
 1
 10
 1
@@ -65,10 +67,10 @@ GRAPHICS-WINDOW
 1
 1
 1
--120
-120
--120
-120
+-480
+480
+-240
+240
 1
 1
 1
@@ -117,8 +119,8 @@ SLIDER
 number
 number
 0
-100
-50.0
+2000
+204.0
 1
 1
 NIL
@@ -132,8 +134,8 @@ SLIDER
 StopTicks
 StopTicks
 1
-500
-500.0
+5000
+2357.0
 1
 1
 NIL
@@ -151,10 +153,10 @@ alert
 -1000
 
 PLOT
-731
-20
-1053
-260
+10
+191
+332
+431
 Save persons
 Time
 Persons
@@ -166,9 +168,9 @@ true
 false
 "" ""
 PENS
-"SavePersons" 1.0 0 -13840069 true "" "plot count turtles with [pcolor = rgb 0 255 0]"
+"SavePersons" 1.0 0 -13840069 true "" "plot count turtles with [save? = true]"
 "Turtles" 1.0 0 -7500403 true "" "plot count turtles"
-"NotSavedPersons" 1.0 0 -2674135 true "" "plot count turtles with [pcolor = extract-rgb white]"
+"NotSavedPersons" 1.0 0 -2674135 true "" "plot count turtles with [save? = false]"
 
 @#$#@#$#@
 ## WHAT IS IT?
