@@ -2,7 +2,7 @@ extensions [bitmap]
 globals [Final-Cost ]
 
 patches-own [road? save? father Cost-path visited? active? faculty]
-turtles-own [camino fear? colorRange free?]
+turtles-own [camino fear? colorRange]
 
 to setup
   ca
@@ -10,7 +10,7 @@ to setup
   import-pcolors-rgb "bg.png"
 
   ask turtles [
-    set free? false
+    set save? false
     set fear? random 100
   ]
 
@@ -60,7 +60,7 @@ end
 
 to go
 
-  ifelse  count ( turtles with [free? = false]) = 0 [ stop ][tick]
+  ifelse  count ( turtles with [save? = false]) = 0 [ stop ][tick]
 
   ifelse not alert
   [ask turtles [ ;normal move
@@ -69,21 +69,20 @@ to go
     ]
   ]
   [
-    ask turtles with [ free? = true][ ;normal move
+    ask turtles with [ save? = true][ ;normal move
     let lista colorRange
     face one-of patches in-radius 2 with [ save? = true ] fd 1
     ]
 
-    ask turtles with [free? = false] [ ; alert move
-      show "Entrando"
+    ask turtles with [save? = false] [ ; alert move
       let lista colorRange
       let p-valids (patches with [member? (round (approximate-rgb (item 0 pcolor) (item 1 pcolor) (item  2 pcolor))) lista])
       ifelse camino = 0 [
         set camino A* patch-here (min-one-of patches with[ save? = true] [distance myself]) p-valids
-        show camino != nobody
+        show camino
       ]
       [
-        ifelse pcolor = extract-rgb cyan [ set free? true]
+        ifelse pcolor = extract-rgb cyan [ set save? true]
                                          [let tgo first camino
                                          face tgo ifelse (fear? >= probFear)  [fd 1 set shape "circle"][ fd 0.5]
                                          set camino remove-item 0 camino ]
@@ -198,11 +197,11 @@ end
 GRAPHICS-WINDOW
 348
 13
-1312
+1308
 460
 -1
 -1
-0.5
+2.0
 1
 10
 1
@@ -212,10 +211,10 @@ GRAPHICS-WINDOW
 0
 0
 1
--480
-480
--220
-220
+-120
+120
+-55
+55
 1
 1
 1
