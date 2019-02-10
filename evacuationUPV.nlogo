@@ -74,7 +74,6 @@ to go
     ]
   ]
   [
-    ask turtles with [fear? >= probFear] [ set shape "wolf"]
     ask turtles with [save? = false] [ ; alert move
 
       ifelse camino = 0 [
@@ -90,7 +89,7 @@ to go
         [ set save? true set shape "star"]
 
         [
-          ifelse fear? >= probFear [
+          ifelse fear? <= probFear [
             ifelse (random 10) >= 5 [
               move-to patch-here
               set shape "x" set size 5
@@ -216,10 +215,10 @@ to-report Heuristic [#Goal]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-348
-13
-1079
-385
+9
+47
+740
+419
 -1
 -1
 3.0
@@ -243,9 +242,9 @@ ticks
 60.0
 
 BUTTON
-27
+12
 10
-90
+75
 43
 setup
 setup
@@ -260,9 +259,9 @@ NIL
 1
 
 BUTTON
-95
+80
 10
-158
+143
 43
 go
 go
@@ -277,25 +276,25 @@ NIL
 1
 
 SLIDER
-15
-48
-327
-81
+147
+10
+459
+43
 number
 number
 0
 200
-6.0
+9.0
 1
 1
 NIL
 HORIZONTAL
 
 SWITCH
-17
-86
-120
-119
+462
+11
+565
+44
 alert
 alert
 0
@@ -303,10 +302,10 @@ alert
 -1000
 
 PLOT
-10
-191
-332
-431
+765
+11
+1327
+215
 Save persons
 Time
 Persons
@@ -315,7 +314,7 @@ Persons
 0.0
 10.0
 true
-false
+true
 "" ""
 PENS
 "SavePersons" 1.0 0 -13840069 true "" "plot count turtles with [save? = true]"
@@ -323,19 +322,39 @@ PENS
 "NotSavedPersons" 1.0 0 -2674135 true "" "plot count turtles with [save? = false]"
 
 SLIDER
-144
-89
-316
-122
+569
+11
+741
+44
 probFear
 probFear
 0
 100
-100.0
+50.0
 1
 1
 NIL
 HORIZONTAL
+
+PLOT
+764
+231
+1330
+418
+Personas con miedo
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"Personas sin Miedo" 1.0 0 -13840069 true "" "plot count turtles "
+"Personas Bloqueadas" 1.0 0 -5825686 true "" "plot count turtles with [ shape = \"x\" ]"
+"Personas con Miedo" 1.0 0 -2674135 true "" "plot count turtles with [fear? <= probFear]"
 
 @#$#@#$#@
 ## WHAT IS IT?
