@@ -2,11 +2,11 @@ extensions [bitmap]
 globals [Final-Cost ]
 
 patches-own [road? save? father Cost-path visited? active? faculty]
-turtles-own [camino fear? colorRange]
+turtles-own [camino fear? colorRange colorObjetivo]
 
 to setup
   ca
-  ;resize-world -480 480 -240 240
+  resize-world -120 120 -60 60
   import-pcolors-rgb "bg.png"
 
   ask turtles [
@@ -32,7 +32,7 @@ to setup
   [ [col pcol] ->
       ask patches with [pcolor = extract-rgb pcol] [set road? true]
       ask n-of number patches with [pcolor = extract-rgb pcol][
-        sprout 1 [set color col set shape "person" set size 5 set faculty pcol]
+        sprout 1 [set color col set shape "person" set size 3 set faculty pcol]
       ]
   ])
   show "Persons created"
@@ -41,6 +41,9 @@ to setup
   ask turtles[
 
     set colorRange []
+    set colorObjetivo []
+    foreach (range 80.1 89.9 prec) [ y -> ( set colorObjetivo insert-item 0 colorObjetivo (precision y 1))]
+    set colorObjetivo remove 89.9 colorObjetivo
 
     foreach (range 0 140 prec) [ y -> ( set colorRange insert-item 0 colorRange (precision y 1))]
     set colorRange (remove 0 colorRange)
@@ -65,26 +68,42 @@ to go
   ifelse not alert
   [ask turtles [ ;normal move
     let lista colorRange
-    face one-of patches in-radius 2 with [ member? (round (approximate-rgb (item 0 pcolor) (item 1 pcolor) (item  2 pcolor))) lista and count turtles-here = 0 ] fd 1
+    move-to one-of patches in-radius 2 with [ member? (round (approximate-rgb (item 0 pcolor) (item 1 pcolor) (item  2 pcolor))) lista and count turtles-here = 0 ]
     ]
   ]
   [
-    ask turtles with [ save? = true][ ;normal move
-    let lista colorRange
-    face one-of patches in-radius 2 with [ save? = true ] fd 1
-    ]
-
     ask turtles with [save? = false] [ ; alert move
-      let lista colorRange
-      let p-valids (patches with [member? (round (approximate-rgb (item 0 pcolor) (item 1 pcolor) (item  2 pcolor))) lista])
+
       ifelse camino = 0 [
+        let lista colorRange
+        let p-valids (patches with [member? (round (approximate-rgb (item 0 pcolor) (item 1 pcolor) (item  2 pcolor))) lista])
         set camino A* patch-here (min-one-of patches with[ save? = true] [distance myself]) p-valids
       ]
       [
-        ifelse pcolor = extract-rgb cyan [ set save? true show "He llegado"]
-                                         [let tgo first camino
-                                         face tgo fd 1 ;ifelse (fear? >= probFear)  [fd 1 set shape "circle"][ fd 0.5]
-                                         set camino remove-item 0 camino ]
+        ;foreach camino [ y -> ask y[set pcolor black]]
+        let lista2 colorObjetivo
+        ifelse member? (round (approximate-rgb (item 0 pcolor) (item 1 pcolor) (item  2 pcolor))) lista2
+
+        [ set save? true set shape "star"]
+
+        [
+          ifelse fear? >= probFear [
+            ifelse (random 2) = 0 [
+              move-to patch-here
+              set shape "x"
+            ][
+              let tgo first camino
+              move-to tgo
+              set camino remove-item 0 camino
+              set shape "person"
+            ]
+
+          ][
+            let tgo first camino
+            move-to tgo
+            set camino remove-item 0 camino
+          ]
+        ]
       ]
     ]
   ]
@@ -196,11 +215,11 @@ end
 GRAPHICS-WINDOW
 348
 13
-1082
-388
+1079
+385
 -1
 -1
-6.0
+3.0
 1
 10
 1
@@ -210,10 +229,10 @@ GRAPHICS-WINDOW
 0
 0
 1
+-120
+120
 -60
 60
--30
-30
 1
 1
 1
@@ -263,7 +282,7 @@ number
 number
 0
 200
-1.0
+100.0
 1
 1
 NIL
