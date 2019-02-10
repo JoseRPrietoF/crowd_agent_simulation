@@ -79,12 +79,11 @@ to go
       let p-valids (patches with [member? (round (approximate-rgb (item 0 pcolor) (item 1 pcolor) (item  2 pcolor))) lista])
       ifelse camino = 0 [
         set camino A* patch-here (min-one-of patches with[ save? = true] [distance myself]) p-valids
-        show camino
       ]
       [
-        ifelse pcolor = extract-rgb cyan [ set save? true]
+        ifelse pcolor = extract-rgb cyan [ set save? true show "He llegado"]
                                          [let tgo first camino
-                                         face tgo ifelse (fear? >= probFear)  [fd 1 set shape "circle"][ fd 0.5]
+                                         face tgo fd 1 ;ifelse (fear? >= probFear)  [fd 1 set shape "circle"][ fd 0.5]
                                          set camino remove-item 0 camino ]
       ]
     ]
@@ -197,11 +196,11 @@ end
 GRAPHICS-WINDOW
 348
 13
-1308
-460
+1082
+388
 -1
 -1
-2.0
+6.0
 1
 10
 1
@@ -211,10 +210,10 @@ GRAPHICS-WINDOW
 0
 0
 1
--120
-120
--55
-55
+-60
+60
+-30
+30
 1
 1
 1
@@ -264,7 +263,7 @@ number
 number
 0
 200
-5.0
+1.0
 1
 1
 NIL
