@@ -14,6 +14,7 @@ to setup
     set fear? random 100
   ]
 
+
   ask patches [
     set road? false
     set save? false
@@ -58,6 +59,7 @@ to setup
 
   ]
   show "Lists added...."
+  ask turtles [ set fear? random 100]
   reset-ticks
 end
 
@@ -72,6 +74,7 @@ to go
     ]
   ]
   [
+    ask turtles with [fear? >= probFear] [ set shape "wolf"]
     ask turtles with [save? = false] [ ; alert move
 
       ifelse camino = 0 [
@@ -88,14 +91,14 @@ to go
 
         [
           ifelse fear? >= probFear [
-            ifelse (random 2) = 0 [
+            ifelse (random 10) >= 5 [
               move-to patch-here
-              set shape "x"
+              set shape "x" set size 5
             ][
               let tgo first camino
               move-to tgo
               set camino remove-item 0 camino
-              set shape "person"
+              set shape "person" set size 3
             ]
 
           ][
@@ -282,7 +285,7 @@ number
 number
 0
 200
-100.0
+6.0
 1
 1
 NIL
