@@ -1,40 +1,54 @@
 extensions [bitmap]
-globals [Final-Cost]
+globals [Final-Cost ]
 
 patches-own [road? save? father Cost-path visited? active? faculty]
-turtles-own [saveT? camino ]
+turtles-own [saveT? camino fear? colorRange]
 to setup
   ca
 
   ;resize-world -480 480 -240 240
   import-pcolors-rgb "bg.png"
 
-  ask turtles [set saveT? false]
-    ask patches [
+  ask turtles [
+    set saveT? false
+    set fear? random 100
+  ]
+
+  ask patches [
     set road? false
     set save? false
     set father nobody
     set Cost-path 0
     set visited? false
-    set active? false]
-  ask patches with [pcolor = extract-rgb red       ] [ set road? true ]
-  ask patches with [pcolor = extract-rgb orange    ] [ set road? true ]
-  ask patches with [pcolor = extract-rgb lime      ] [ set road? true ]
-  ask patches with [pcolor = extract-rgb brown     ] [ set road? true ]
-  ask patches with [pcolor = extract-rgb turquoise ] [ set road? true ]
-  ask patches with [pcolor = extract-rgb magenta   ] [ set road? true ]
-  ask patches with [pcolor = extract-rgb yellow    ] [ set road? true ]
-  ask patches with [pcolor = extract-rgb violet    ] [ set road? true ]
+    set active? false
+  ]
+
   ;secure color
-  ask patches with [pcolor = extract-rgb cyan       ] [set save? true ]
-
-  ;create persons of diferent faculty
-  (foreach  [yellow red blue cyan black orange violet sky] [ red orange lime brown turquoise magenta yellow violet ] [1 2 3 4 5 6 7 8]
-  [ [col pcol fac] -> ask n-of number patches with [pcolor = extract-rgb pcol][
-      sprout 1 [set color col set shape "person" set size 2 set faculty fac]
-    ]
+  ask patches with [pcolor = extract-rgb cyan] [set save? true ]
+  ask patches with [pcolor = 0] [set pcolor extract-rgb black ] ;fix bad color map
+  show "Creating persons...."
+  ;create persons in diferent faculty
+  (foreach  [yellow red blue cyan black orange violet sky] [ red orange lime brown turquoise magenta yellow violet]
+  [ [col pcol] ->
+      ask patches with [pcolor = extract-rgb pcol] [set road? true]
+      ask n-of number patches with [pcolor = extract-rgb pcol][
+        sprout 1 [set color col set shape "person" set size 5 set faculty pcol]
+      ]
   ])
-
+  show "Persons created"
+  show "Creating persons list...."
+  let prec 0.1
+  ask turtles[
+    set colorRange (range 0 140 prec)
+    foreach [ red orange lime brown turquoise magenta yellow violet black] [ x ->
+      if x != faculty [
+        let maxc (x + 5)
+        let minc (x - 5)
+        foreach (range minc maxc prec) [ y -> ( set colorRange (remove y colorRange))]
+      ]
+    ]
+  ]
+  show "Lists added...."
   reset-ticks
 end
 
@@ -44,21 +58,27 @@ to go
 
   ifelse not alert
   [ask turtles [ ;normal move
-    face one-of patches in-radius 2 with [ road? = true and count turtles-here = 0 ]  fd 1
-  ]]
-
+    let lista colorRange
+    face one-of patches in-radius 2 with [ member? (round (approximate-rgb (item 0 pcolor) (item 1 pcolor) (item  2 pcolor))) lista and count turtles-here = 0 ] fd 1
+    ]
+  ]
   [
-    ask turtles with [save? = false] [ ; alert move
-      let cc color
-      let p-valids (patches with [pcolor != extract-rgb black and ( pcolor = extract-rgb cc or pcolor = extract-rgb cyan or pcolor = extract-rgb white or pcolor = extract-rgb gray )])
+    ask turtles with [ saveT? = true][ ;normal move
+    let lista colorRange
+    face one-of patches in-radius 2 with [ save? = true and count turtles-here = 0 ] fd 1
+    ]
+    ask turtles with [saveT? = false] [ ; alert move
+      let lista colorRange
+      let p-valids (patches with [member? (round (approximate-rgb (item 0 pcolor) (item 1 pcolor) (item  2 pcolor))) lista])
       ifelse camino = 0 [
         set camino A* patch-here (min-one-of patches with[ save? = true] [distance myself]) p-valids
+        show camino != nobody
       ]
       [
-        ifelse pcolor = rgb 0 255 0 [ set saveT? true]
-                                    [let tgo first camino
-                                     move-to tgo
-                                     set camino remove-item 0 camino ]
+        ifelse pcolor = extract-rgb cyan [ set saveT? true]
+                                         [let tgo first camino
+                                         face tgo ifelse (fear? >= probFear)  [fd 1 set shape "circle"][ fd 0.5]
+                                         set camino remove-item 0 camino ]
       ]
     ]
   ]
@@ -170,11 +190,11 @@ end
 GRAPHICS-WINDOW
 348
 13
-1561
-627
+1316
+462
 -1
 -1
-5.0
+0.5
 1
 10
 1
@@ -184,10 +204,10 @@ GRAPHICS-WINDOW
 0
 0
 1
--120
-120
--60
-60
+-960
+960
+-440
+440
 1
 1
 1
@@ -237,7 +257,7 @@ number
 number
 0
 200
-7.0
+34.0
 1
 1
 NIL
@@ -250,7 +270,7 @@ SWITCH
 119
 alert
 alert
-0
+1
 1
 -1000
 
@@ -273,6 +293,21 @@ PENS
 "SavePersons" 1.0 0 -13840069 true "" "plot count turtles with [save? = true]"
 "Turtles" 1.0 0 -7500403 true "" "plot count turtles"
 "NotSavedPersons" 1.0 0 -2674135 true "" "plot count turtles with [save? = false]"
+
+SLIDER
+144
+89
+316
+122
+probFear
+probFear
+0
+100
+100.0
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
