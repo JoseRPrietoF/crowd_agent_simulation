@@ -2,15 +2,15 @@ extensions [bitmap]
 globals [Final-Cost ]
 
 patches-own [road? save? father Cost-path visited? active? faculty]
-turtles-own [saveT? camino fear? colorRange]
+turtles-own [camino fear? colorRange free?]
+
 to setup
   ca
-
   ;resize-world -480 480 -240 240
   import-pcolors-rgb "bg.png"
 
   ask turtles [
-    set saveT? false
+    set free? false
     set fear? random 100
   ]
 
@@ -39,14 +39,20 @@ to setup
   show "Creating persons list...."
   let prec 0.1
   ask turtles[
-    set colorRange (range 0 140 prec)
-    foreach [ red orange lime brown turquoise magenta yellow violet black] [ x ->
+
+    set colorRange []
+
+    foreach (range 0 140 prec) [ y -> ( set colorRange insert-item 0 colorRange (precision y 1))]
+    set colorRange (remove 0 colorRange)
+
+    foreach [ red orange lime brown turquoise magenta yellow violet] [ x ->
       if x != faculty [
-        let maxc (x + 5)
-        let minc (x - 5)
+        let maxc (x + 4)
+        let minc (x - 4)
         foreach (range minc maxc prec) [ y -> ( set colorRange (remove y colorRange))]
       ]
     ]
+
   ]
   show "Lists added...."
   reset-ticks
@@ -54,7 +60,7 @@ end
 
 to go
 
-  ifelse  count ( turtles with [save? = false]) = 0 [ stop ][tick]
+  ifelse  count ( turtles with [free? = false]) = 0 [ stop ][tick]
 
   ifelse not alert
   [ask turtles [ ;normal move
@@ -63,11 +69,13 @@ to go
     ]
   ]
   [
-    ask turtles with [ saveT? = true][ ;normal move
+    ask turtles with [ free? = true][ ;normal move
     let lista colorRange
-    face one-of patches in-radius 2 with [ save? = true and count turtles-here = 0 ] fd 1
+    face one-of patches in-radius 2 with [ save? = true ] fd 1
     ]
-    ask turtles with [saveT? = false] [ ; alert move
+
+    ask turtles with [free? = false] [ ; alert move
+      show "Entrando"
       let lista colorRange
       let p-valids (patches with [member? (round (approximate-rgb (item 0 pcolor) (item 1 pcolor) (item  2 pcolor))) lista])
       ifelse camino = 0 [
@@ -75,7 +83,7 @@ to go
         show camino != nobody
       ]
       [
-        ifelse pcolor = extract-rgb cyan [ set saveT? true]
+        ifelse pcolor = extract-rgb cyan [ set free? true]
                                          [let tgo first camino
                                          face tgo ifelse (fear? >= probFear)  [fd 1 set shape "circle"][ fd 0.5]
                                          set camino remove-item 0 camino ]
@@ -190,8 +198,8 @@ end
 GRAPHICS-WINDOW
 348
 13
-1316
-462
+1312
+460
 -1
 -1
 0.5
@@ -204,10 +212,10 @@ GRAPHICS-WINDOW
 0
 0
 1
--960
-960
--440
-440
+-480
+480
+-220
+220
 1
 1
 1
@@ -257,7 +265,7 @@ number
 number
 0
 200
-34.0
+5.0
 1
 1
 NIL
@@ -270,7 +278,7 @@ SWITCH
 119
 alert
 alert
-1
+0
 1
 -1000
 
