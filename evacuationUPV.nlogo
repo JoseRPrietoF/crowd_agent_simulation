@@ -92,7 +92,7 @@ to go
           ifelse fear? <= probFear [
             ifelse (random 10) >= 5 [
               move-to patch-here
-              set shape "x" set size 5
+              set shape "x" set color red
             ][
               let tgo first camino
               move-to tgo
