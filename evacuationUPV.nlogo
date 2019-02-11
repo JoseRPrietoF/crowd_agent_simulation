@@ -2,18 +2,12 @@ extensions [bitmap]
 globals [Final-Cost ]
 
 patches-own [road? save? father Cost-path visited? active? faculty]
-turtles-own [camino fear? colorRange colorObjetivo]
+turtles-own [camino fear? colorRange colorObjetivo ]
 
 to setup
   ca
   resize-world -120 120 -60 60
   import-pcolors-rgb "bg.png"
-
-  ask turtles [
-    set save? false
-    set fear? random 100
-  ]
-
 
   ask patches [
     set road? false
@@ -33,7 +27,7 @@ to setup
   [ [col pcol] ->
       ask patches with [pcolor = extract-rgb pcol] [set road? true]
       ask n-of number patches with [pcolor = extract-rgb pcol][
-        sprout 1 [set color col set shape "person" set size 3 set faculty pcol]
+        sprout 1 [set color black set shape "person" set size 3 set faculty pcol]
       ]
   ])
   show "Persons created"
@@ -59,7 +53,8 @@ to setup
 
   ]
   show "Lists added...."
-  ask turtles [ set fear? random 100]
+  ask turtles [set save? false  set fear? (random 100) <= probFear     ;if fear? [set color red]
+  ]
   reset-ticks
 end
 
@@ -89,16 +84,35 @@ to go
         [ set save? true set shape "star"]
 
         [
-          ifelse fear? <= probFear [
-            ifelse (random 10) >= 5 [
+
+          ifelse fear? [
+
+            set color red
+            ifelse (random 100) <= probBlock [
               move-to patch-here
-              set shape "x" set color red
+              set shape "x"
             ][
               let tgo first camino
-              move-to tgo
+              let n count turtles-on tgo
+              ifelse n <= 2
+              [
+               move-to tgo
               set camino remove-item 0 camino
-              set shape "person" set size 3
+              set shape "person"
+              ]
+              [
+                ifelse (random n) = n
+                [move-to tgo
+                  set camino remove-item 0 camino
+                  set shape "person"]
+                [move-to patch-here]
+              ]
+
             ]
+            if (ticks mod ratioInfect) = 0 [
+            ask other turtles in-radius radiusInfect [ if (random 100)  <= probInfect and not fear? [ set fear? true ]]
+            ]
+
 
           ][
             let tgo first camino
@@ -284,7 +298,7 @@ number
 number
 0
 200
-9.0
+37.0
 1
 1
 NIL
@@ -319,7 +333,6 @@ true
 PENS
 "SavePersons" 1.0 0 -13840069 true "" "plot count turtles with [save? = true]"
 "Turtles" 1.0 0 -7500403 true "" "plot count turtles"
-"NotSavedPersons" 1.0 0 -2674135 true "" "plot count turtles with [save? = false]"
 
 SLIDER
 569
@@ -330,7 +343,7 @@ probFear
 probFear
 0
 100
-50.0
+5.0
 1
 1
 NIL
@@ -352,46 +365,102 @@ true
 true
 "" ""
 PENS
-"Personas sin Miedo" 1.0 0 -13840069 true "" "plot count turtles "
 "Personas Bloqueadas" 1.0 0 -5825686 true "" "plot count turtles with [ shape = \"x\" ]"
-"Personas con Miedo" 1.0 0 -2674135 true "" "plot count turtles with [fear? <= probFear]"
+"Personas con Miedo" 1.0 0 -2674135 true "" "plot count turtles with [fear?]"
+
+SLIDER
+9
+425
+181
+458
+probInfect
+probInfect
+0
+100
+10.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+196
+424
+368
+457
+radiusInfect
+radiusInfect
+0
+5
+2.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+381
+425
+553
+458
+ratioInfect
+ratioInfect
+0
+30
+5.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+564
+424
+737
+457
+probBlock
+probBlock
+0
+100
+25.0
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
-## WHAT IS IT?
+Hola Vicente,
 
-(a general understanding of what the model is trying to show or explain)
+Esta es el mejor trabajo que vas a ver de Netlogo en estos 10 minutos.
 
-## HOW IT WORKS
+Disfrútalo.
 
-(what rules the agents use to create the overall behavior of the model)
+Atte: J & C
 
-## HOW TO USE IT
-
-(how to use the model, including a description of each of the items in the Interface tab)
-
-## THINGS TO NOTICE
-
-(suggested things for the user to notice while running the model)
-
-## THINGS TO TRY
-
-(suggested things for the user to try to do (move sliders, switches, etc.) with the model)
-
-## EXTENDING THE MODEL
-
-(suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
-
-## NETLOGO FEATURES
-
-(interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
-
-## RELATED MODELS
-
-(models in the NetLogo Models Library and elsewhere which are of related interest)
-
-## CREDITS AND REFERENCES
-
-(a reference to the model's URL on the web if it has one, as well as any other necessary credits, citations, and links)
+¯\_(ツ)_/¯ 
+.-----:::////++++ooooooooossssoooooooooo++++oooooosyyysooooooooooooooossssssssssssydy
+-----:::////+++++ooooooooossos++++++++++++++++++++ssyssooooooooooooooooooooooooooosdy
+::::::////+++++ooooooooooosooo++++++++++++++++++++osyss++++++++++++o+oooooooooooooshh
+////////++++++oooooooooooosooo++++++++/////////+++osysso+++++++++++++++++++++++ooooyh
++///+++++++ooooooooooooooosssssoo+++////////////++syhhhhyyys+++++++++++++++++++++oosh
+++++++++ooooooooooooooossyyyyyyssso+++/////////+yhhhhhhhhhhhy+//////++++++++++++++osh
+ooooooooooooossssssoossyysoossyyyyyyyss///////+yhhhyyo+/::/yyo/////////////++++++++oh
+ssossosssssssssssssssyys+////+ooooyyyyy+//////ohhyo+//:----/ss////////////////++++++y
+sssssssssssssssssssssyso++/::::::/oysyyo//////+yhso////////::s//////////////////++++s
+yyssssssysysssysssssoss+ooo+/:////+yyyyo///////+ssoso+/osso/-/+/:::///+:////////++++o
+yyyyyyyyyyyyyyyyyyysoo+++oo++oooooohhhy+////////+sssso/-///:-:o::::://+::////////+++o
+hhhhyyyyyyyyyyyyyyyys++++++:++++ooyhyy+//////////oo++o+::+++//s/::::////:-:///////+++
+hhhhhhhhhhhyyhhyyyyys+oooo+ooo+++oso++////////////ooossssooysss::::::///:---://///+++
+dhdhhhhhhhhhhhhhhhhhssooo/+sssoooo+++///////////://syyyssoosyho://::----...--://+++++
+dddddhhdhdhhhhhhhhddyyo++oooossso+++++/////////////oshhhyyyyhs+::/:--......---:/+o+++
+ddddddddmmmmmmmmmmmdsyysoooshyhhyyso++++///////////osydhhhhyo+/::/:------------::///+
+mmmmmmmmmmmmmmmmmmmdo+syyhhhyydhyddhhyyso+/////+osyhddddhsso+++++/:::--::::::://///++
+mmmmmmmmmmmmmmmmmmmmdhyyyyyyhdd/:hdddddddh++++shhdddddddddhs+oyys+/:-:::://///++++++o
+mmNmNNmmmmmmmmmmmmmmmmmmddddddh-:oddddddddhs+shhhhhdhhhdddddhhyyyso++:::///+++ooooooo
+NNNNNNNmmmmmmmmmmmmmmmmdddyhhhh-./hdddddddddohhhhhdhhhhhhdddddhhyhhys//++ooooosyyhhhh
+NNNNNNNNNmNNNmmmmmmmmmmdd:-.-:-`.-oddddddmmmyddhhhhhhdhhhddhdmdddddhhyyhhhhhddmmmNNNN
+NNNNNNNNNmmNmmmmmmmmmmmds--.-----:/hdddmmmmmdhdhhhyyhdddhhdddddddddddddddddddmmmNNNNN
+NNNNNNNNNNmmmmmmmmmmmmmd/-..-:::::/+ydmmmmmmmdhhyyyyyhdddddddmddddmmmmmddmmmmmmNNNNNN
 @#$#@#$#@
 default
 true
