@@ -55,33 +55,34 @@ to setup
   show "Lists added...."
   ask turtles [set save? false  set fear? (random 100) <= probFear     ;if fear? [set color red]
   ]
+
+   ask patches with [pxcor = max-pxcor and pycor =  max-pycor] [ set save? true]
   reset-ticks
 end
 
 to go
 
   ifelse  count ( turtles with [save? = false]) = 0 [ stop ][tick]
-  ask turtles with [save? = true] [ die]
+  ask turtles with [save? = true] [ set shape "null" setxy max-pxcor max-pycor ]
+
   ifelse not alert
   [
     ask turtles  ;normal move
     [
     let lista colorRange
-    move-to one-of patches in-radius 2 with [ member? (round (approximate-rgb (item 0 pcolor) (item 1 pcolor) (item  2 pcolor))) lista and count turtles-here = 0 ]
+    move-to one-of patches in-radius 2 with [ member? (round (approximate-rgb (item 0 pcolor) (item 1 pcolor) (item  2 pcolor))) lista ]
     ]
   ]
   [
 
     ask turtles with [save? = false] [
-      ;show member? (round (approximate-rgb (item 0 pcolor) (item 1 pcolor) (item  2 pcolor))) co
       ifelse camino = 0 [
         let lista colorRange
         let p-valids (patches with [member? (round (approximate-rgb (item 0 pcolor) (item 1 pcolor) (item  2 pcolor))) lista])
         set camino A* patch-here (min-one-of patches with[ save? = true] [distance myself]) p-valids
       ]
       [
-        ;show member? (round (approximate-rgb (item 0 pcolor) (item 1 pcolor) (item  2 pcolor))) colorObjetivo
-        ;foreach camino [ y -> ask y[set pcolor black]]
+
         ifelse fear? [
 
           set color red
@@ -630,6 +631,10 @@ line half
 true
 0
 Line -7500403 true 150 0 150 150
+
+null
+true
+0
 
 pentagon
 false
